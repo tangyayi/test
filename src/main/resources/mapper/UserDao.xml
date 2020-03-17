@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.test.user.dao.UserDao">
+
+    <!--查询所有用户数据-->
+    <select id="findAllUsers" parameterType="Map" resultType="com.test.user.model.UserModel">
+        select * from
+            (select rownum rm, a.* from
+                (select user_id,user_name,gender,to_char(birthday,'yyyy-mm-dd') as birthdayString,user_type,favorite from user_test) a
+                where rownum &lt; #{map.size}) b
+        where b.rm &gt; #{map.start}
+        <if test="userModel.userName != null and userModel.userName != ''">
+            and b.user_name like '%' || #{userModel.userName} || '%'
+        </if>
+        <if test="userModel.gender != null and userModel.gender != ''">
+            and b.gender = #{userModel.gender}
+        </if>
+        <if test="userModel.userType != null and userModel.userType != ''">
+            and b.user_type = #{userModel.userType}
+        </if>
+        order by b.user_id
+    </select>
+
+    <!--查询用户总数-->
+    <select id="selectCount" resultType="int">
+        select count(*) from user_test
+    </select>
+
+    <!--新增用户-->
+    <insert id="addUser">
+        insert into user_test(user_id,user_name,birthday,gender,user_type,favorite)
+        values(#{userId},#{userName},#{birthday},#{gender},#{userType},#{favorite})
+    </insert>
+
+    <select id="getOneUser" resultType="com.test.user.model.UserModel">
+        select user_id,gender,user_name,to_char(birthday,'yyyy-mm-dd') as birthdayString,user_type,favorite
+        from user_test
+        <where>
+            user_id = #{userId}
+        </where>
+    </select>
+
+    <!--编辑用户-->
+    <update id="updateUser">
+        update user_test
+        <set>
+            user_name=#{userName},
+            gender=#{gender},
+            birthday=#{birthday},
+            user_type=#{userType},
+            favorite=#{favorite}
+        </set>
+        <where>
+            user_id = #{userId}
+        </where>
+    </update>
+
+    <select id="getPrimaryKey" resultType="int">
+        select max(user_id) from user_test
+    </select>
+
+    <!--删除用户-->
+    <delete id="deleteUser">
+        delete from user_test
+        <where>
+            user_id = #{userId}
+        </where>
+    </delete>
+</mapper>
